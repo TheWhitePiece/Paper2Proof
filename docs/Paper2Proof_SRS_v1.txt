@@ -1,0 +1,507 @@
+Paper2Proof
+Software Requirements Specification
+Claim level reproduction of research experiments
+Version 1.0 • 26 October 2026 • Proposed implementation baseline
+Purpose and product decision
+Paper2Proof will help a researcher select a measurable claim from a scientific paper, construct a bounded experiment, execute it, and inspect whether the observations reproduce the reported result under documented conditions. The system will deliver source-linked claims, runnable code, measurements, assumptions, and a reproducibility package.
+The hackathon MVP will support a small, curated set of CPU-friendly numerical or optimization papers. It will use existing Meta models for reasoning and code generation. It will not train a new foundation model, certify the truth of a paper, or promise reproduction of arbitrary scientific research.
+Audience and authority
+Prepared for Pranav D. Patel and the Paper2Proof implementation team. This document is a proposed engineering specification, not a record of completed functionality or measured performance. “Shall” denotes a release requirement. P0 is required for the MVP; P1 is optional after all P0 acceptance checks pass; P2 is a future capability.
+Decision
+Baseline
+Primary user
+Researcher, student, or engineer checking one experimental claim
+Product boundary
+Experimental reproducibility evidence, not mathematical or scientific proof
+Reference implementation
+Paper2Code and its PaperCoder workflow, with recorded attribution
+Core original work
+Claim specifications, protected evaluation, provenance, and repeatable reports
+Execution profile
+Private demo; one active CPU run; fixed time and resource budgets
+
+Document map
+Sections 1–3 define scope, upstream reuse, and user scenarios. Sections 4–8 specify product behavior. Sections 9–12 define architecture, orchestration, data, and APIs. Sections 13–17 cover security, quality targets, acceptance tests, delivery, and source references.
+
+1 Product scope and constraints
+Problem and expected outcome
+A paper may omit preprocessing rules, random seeds, configuration values, or hardware details. Reimplementation can therefore produce plausible but incomparable results. Paper2Proof shall make those gaps visible and separate implementation failure, environmental mismatch, and measured disagreement.
+Priority
+Included capability
+P0
+Upload text-based PDF; preserve page references and extraction warnings
+P0
+Extract candidate claims; select one; record a versioned experiment specification
+P0
+Generate Python in a fixed project template; validate and execute with bounded repairs
+P0
+Evaluate outputs using reviewed metric adapters and recorded comparison rules
+P0
+Display status, raw evidence, assumptions, and an exportable ZIP package
+P0
+Rerun an immutable specification and compare run histories
+P1
+Accept an existing repository through a reviewed import process
+P1
+OCR or image reasoning for scanned pages and complex tables
+P2
+GPU training, broad paper coverage, scheduled CI checks, collaboration, fine-tuning
+
+Explicit exclusions
+The MVP excludes physical laboratory experiments, medical conclusions, formal theorem proving, proprietary datasets, open-ended dependency installation, arbitrary internet access from experiment code, large-model training, autonomous publication, and public multi-tenant hosting.
+Supported experiment contract
+A supported claim must have a measurable outcome, an available dataset or reproducible synthetic generator, a reviewed evaluation adapter, and a feasible CPU budget. Two or three papers will be selected during implementation; no particular paper is assumed supported until its data, license, method, and runtime have been checked.
+An experiment using substituted data, reduced training, different hardware, or a changed baseline shall be labeled “adapted experiment.” It may demonstrate behavior, but shall not receive an unqualified reproduction verdict for the original claim.
+Operating assumptions
+Initial deployment is a private authenticated demo on a Linux host with at least 4 CPU cores and 16 GB RAM. Each experiment receives at most 2 CPUs and 4 GB RAM. API access, model availability, dataset rights, and final hackathon rules remain deployment prerequisites. Numeric budgets are engineering defaults and must be validated before release.
+
+2 Paper2Code reference and reuse
+What the upstream project provides
+Paper2Code introduces PaperCoder, a system organized around planning, analysis, and repository generation [S1, S2]. Its research also includes execution, debugging, and reproduction studies. Paper2Proof shall acknowledge that overlap and shall not claim that execution or automated repair alone is an original contribution.
+Area
+Planned treatment
+Planning and decomposition
+Study upstream planning, file dependency ordering, and per-file analysis; adapt only what the MVP needs
+Prompts and code
+Reuse selected components if suitable; isolate adapters from upstream-derived files
+Model integration
+Implement a configurable Meta API adapter; do not assume upstream provider compatibility
+Evaluation
+Build claim-specific specifications and trusted metric adapters controlled by Paper2Proof
+Product experience
+Build source-linked claim cards, assumption review, run history, evidence viewer, and export
+Future interoperability
+Allow generated repositories from PaperCoder or authors to enter the same verification workflow
+
+Reuse requirements
+LIC-01 · P0  Before copying code, record the exact upstream commit, URL, imported paths, license text, and local changes in a third-party inventory. This SRS does not claim that an upstream commit has already been integrated.
+LIC-02 · P0  Preserve applicable copyright and attribution notices, distribute the Apache 2.0 license with reused material, mark modified upstream files, and retain applicable NOTICE content if present in the selected revision [S3].
+LIC-03 · P0  Audit imported dependencies, papers, and datasets separately; the repository license does not establish rights to every input or model. Describe pre-existing work and new work accurately in the hackathon submission; verify the event rules before submitting.
+Model creation decision
+Paper2Proof is an agent application built on existing models. A single capable Meta model may serve extraction, planning, generation, and review roles with different prompts and typed outputs. Muse Code is a coding agent, not a separate model; direct Model API use is the MVP integration [S4]. Fine-tuning is deferred until a licensed dataset and a reproducible baseline justify it.
+The new functionality must remain useful even if the implementation source changes. Claim specifications and evaluation evidence are therefore independent of the code-generation backend.
+
+3 Actors and user scenarios
+Actor
+Responsibilities
+Researcher
+Upload a paper, select a claim, resolve assumptions, start or cancel a run, inspect evidence
+Reviewer
+Inspect the exported package and rerun it independently; no separate MVP account role required
+Operator
+Configure model access, resource quotas, approved datasets, evaluator templates, and retention
+External services
+Meta inference API and approved data sources; these do not determine verdicts
+
+UC-01 · Upload  Researcher uploads a supported PDF. The system validates bytes, extracts pages, and creates claim candidates. An unreadable, encrypted, or over-limit file receives a specific error; unsupported pages are flagged.
+UC-02 · Select and specify  Researcher opens a claim and sees its passage, expected value, dataset, baseline, and missing details. Editing a material assumption creates a new specification version. A run cannot start with unresolved comparability blockers.
+UC-03 · Execute  Researcher starts a validated specification within a displayed budget. The UI shows planning, coding, testing, and execution events. A bounded repair loop can fix code; the result is measured by the trusted evaluator.
+UC-04 · Review a discrepancy  A completed run differs from the published target. The system displays measurements, uncertainty, configuration differences, and relevant source passages. It reports “not reproduced in this run” only if comparability checks pass.
+UC-05 · Handle insufficient information  The paper omits a required setting or the dataset is unavailable. The system records the blocker and returns an inconclusive assessment. The researcher can supply information or create an explicitly adapted experiment.
+UC-06 · Cancel or exhaust budget  Researcher cancels, or a hard limit expires. Workers stop, partial artifacts remain, and the state indicates cancellation or budget exhaustion. No successful reproduction verdict is synthesized.
+UC-07 · Export and rerun  Researcher downloads a package containing code, specification, dependency records, metrics, and provenance. An independent rerun uses the same specification; every new attempt gets its own identity.
+UC-08 · Delete  Researcher deletes a project. Access is revoked immediately, active work is canceled, and project artifacts are removed according to the retention policy. A minimal content-free deletion audit remains.
+
+4 Paper ingestion and claim requirements
+FR-01 · P0  The API shall accept PDF uploads up to 25 MiB and 50 pages. It shall verify file signatures, reject corrupt or encrypted files with actionable messages, assign an ID, and calculate a SHA-256 digest.
+FR-02 · P0  Extraction shall retain original page numbers, text spans, and bounding boxes where available. Text extraction and document parsing shall run as untrusted-input processing with a timeout and memory limit.
+FR-03 · P0  The original PDF shall remain available in the project so users can compare extracted passages against the source. Missing text, ambiguous equations, and table-reading problems shall be visible before execution.
+FR-04 · P0  The claim extractor shall emit schema-validated candidates containing the claim text, source passage, page, type, metric, unit, direction, reported value, dataset, baseline, and any conditions. Unknown fields shall be null with a reason.
+FR-05 · P0  A source validator shall confirm that cited spans exist in the extracted document. An agent confidence score shall not substitute for source validation. Unresolved extraction errors shall block an affected claim.
+FR-06 · P0  The feasibility check shall classify claims as supported, requires information, or out of scope. Reasons shall include unavailable data, unsupported metric, ambiguous method, excessive resources, or external equipment needs.
+FR-07 · P0  The user shall be able to correct claim fields and add supplementary information. Corrections shall be attributed to the user and versioned without changing the source PDF or prior claims.
+FR-08 · P0  Candidate claims shall be treated individually. A result for one claim shall never be promoted into a verdict for the entire paper. The report shall show both selected and untested claims when available.
+Claim record example
+Field
+Illustrative value only
+Statement
+Algorithm A reduces runtime by 30 percent relative to baseline B
+Source
+Page 6, Table 2, with exact extracted span and PDF coordinates
+Metric
+Runtime reduction; percent; larger is better
+Conditions
+Dataset D; input size N; baseline version B; hardware specified separately
+Missing field
+Thread count not stated; unresolved comparability impact
+
+The example is a schema illustration, not an extracted claim or a completed experiment. No illustrative measurement shall appear as a real run in the demo.
+
+5 Experiment specification requirements
+FR-09 · P0  Each experiment shall reference one immutable claim version and one evaluator version. Its specification shall include the objective, method, baseline, dataset digest or generator, preprocessing, split, seeds, hyperparameters, metric formula, units, hardware assumptions, repetitions, and budget.
+FR-10 · P0  Every nontrivial setting shall be classified as paper-specified, user-provided, or agent-assumed, with a source or rationale. Required unknown values shall remain visible and shall not be silently filled.
+FR-11 · P0  A comparability checklist shall assess method fidelity, dataset and split, baseline, preprocessing, compute conditions, and metric semantics. Known material mismatches shall force adapted or inconclusive classification.
+FR-12 · P0  The comparison rule, uncertainty procedure, and tolerance shall be fixed before execution. Tolerance shall come from the paper or an explicit user-approved policy with rationale. No universal accuracy or runtime tolerance shall be assumed.
+FR-13 · P0  The interface shall show the complete specification and estimated cost and runtime before Start. Starting a run records acceptance of that version.
+FR-14 · P0  Changes to data, baseline, metric, seed policy, tolerance, or hyperparameters after execution begins shall create a new experiment version. Results shall not be combined across versions without explicit labeling.
+FR-15 · P0  Datasets shall be acquired by an approved broker, validated, checksummed, and mounted read-only. The MVP shall prefer preloaded public data or fixed synthetic generators. Downloaded archives shall be checked for traversal, symlinks, decompression limits, and declared licensing.
+FR-16 · P0  The planner shall allocate budgets across implementation, tests, and repeated measurement. It shall refuse infeasible workloads before starting and shall never assume unlimited GPU or cloud access.
+Definition of readiness
+A specification is ready only when source references validate, mandatory fields exist, a reviewed evaluator supports the claim, data is available, all blocking assumptions are resolved, and the resource budget fits the supported profile. Assumed settings may remain for adapted experiments, but their effect on the conclusion must be explicit.
+Avoiding result-driven tuning
+An observed mismatch is evidence, not an instruction to optimize until the reported value is reached. Any later exploratory tuning shall be a separate labeled experiment with its full search history retained.
+
+6 Code generation and execution requirements
+FR-17 · P0  Code generation shall produce a Python project following a controlled adapter interface. The output shall contain implementation files, configuration, dependency declarations, and method-to-source notes. Generated code shall not select the final verdict.
+FR-18 · P0  Dependencies shall come from an approved, pinned environment. New packages require operator review and a separately built image. Experiment code shall not install packages or download resources during evaluation.
+FR-19 · P0  Validation shall include import checks, small deterministic smoke tests, input and output schema checks, and domain-specific correctness tests. Reviewer comments from an LLM are advisory and shall not replace these checks.
+FR-20 · P0  The orchestrator may perform at most three repair attempts after the initial implementation. Repairs shall respond to a specific test or execution failure, preserve specification semantics, and record code diffs and diagnostics.
+FR-21 · P0  The runner shall execute each attempt in an isolated, non-root environment with no host secrets, network disabled, read-only inputs, restricted syscalls, dropped capabilities, and explicit CPU, RAM, process, disk, and time limits.
+FR-22 · P0  A trusted supervisor shall capture start and end time, exit code, image digest, resource use, standard output, standard error, generated outputs, and artifact digests. Model-written logs shall never be treated as trusted telemetry.
+FR-23 · P0  Cancellation shall interrupt the process tree and terminate remaining processes after a grace period. Timeout, out-of-memory, disk exhaustion, malformed outputs, and security-policy violations shall have distinct reason codes.
+FR-24 · P0  A fresh attempt directory shall be used for every repair and rerun. Earlier results shall be immutable. Identical Start requests with the same idempotency key shall not launch duplicate jobs.
+Default execution budget
+Limit
+Proposed default
+Resources per sandbox
+2 CPUs; 4 GiB RAM; 128 processes; 1 GiB writable workspace
+Time
+180 seconds per sandbox invocation; 15 minutes total wall time per run
+Agent budget
+20 model calls; at most 3 repairs; configured spend cap, initially USD 2
+Evidence size
+10 MiB captured stdout and stderr combined; 100 MiB exported artifacts
+
+Budget exhaustion yields an incomplete assessment. All required repetitions must finish before a reproduction verdict is eligible. Defaults are configurable and must be measured on the chosen demo papers.
+
+7 Verification and verdict requirements
+FR-25 · P0  Evaluation shall use a versioned, reviewed harness isolated from generated code. The implementation receives inputs and returns constrained outputs; trusted code computes metrics and the final comparison outside its writable environment.
+FR-26 · P0  Correctness and comparability checks shall precede performance comparisons. The evaluator shall reject missing outputs, NaN or infinite values, invalid shapes, altered data, and failing reference tests. A numeric match alone shall not imply method fidelity.
+FR-27 · P0  Measurement shall follow the frozen specification. Runtime studies shall record warm-up, repetition count, ordering, hardware, thread settings, and measurement boundaries. Timing overhead must be measured or held comparable; untrusted self-reported timing is insufficient.
+FR-28 · P0  For a runtime reduction, the harness shall subtract proposed runtime from baseline runtime, divide that difference by baseline runtime, and multiply by 100, using the specified aggregation. It shall reject nonpositive baselines. Accuracy differences shall distinguish percentage points from relative percentages.
+FR-29 · P0  Stochastic experiments shall retain all seed-level results and report the declared summary and uncertainty estimate. A single observation or overlapping confidence intervals shall not automatically establish equivalence.
+FR-30 · P0  The deterministic decision engine shall apply the following ordered rules. An LLM may explain the outcome but shall not override it.
+Condition in order
+Assessment
+Execution failed, canceled, timed out, or incomplete
+No scientific verdict; show execution status and reason
+Missing critical details, material mismatch, uncertain fidelity, or inadequate evidence
+Inconclusive; adapted experiments explicitly labeled
+All gates pass and the preregistered comparison criterion passes
+Reproduced within the stated tolerance and conditions
+All gates pass and sufficient evidence establishes the criterion fails
+Not reproduced in this run
+Uncertainty does not permit either comparison decision
+Inconclusive
+
+FR-31 · P0  For an equivalence-style check, an agreed confidence interval fully inside the acceptance band may pass, fully outside may fail, and partial overlap is inconclusive. Other claim types require their own reviewed rule. Descriptive checks without uncertainty shall be labeled accordingly.
+FR-32 · P0  The report shall state that failure to reproduce is not proof that a paper is false. Remaining implementation errors, environmental differences, and incomplete specifications shall be listed when relevant.
+
+8 Reports interface and evidence export
+FR-33 · P0  The dashboard shall expose four views: paper and claims, experiment specification, live run details, and evidence report. Every view shall show current state, next available action, and actionable failures.
+FR-34 · P0  The report shall display the selected claim, source location, reported value, observed summary, uncertainty, comparison rule, verdict, comparability checklist, assumptions, and untested scope. Charts shall be generated only from stored measurements.
+FR-35 · P0  Each result shall link to the exact specification, code digest, dataset digest, evaluator version, and run. The reader shall be able to inspect raw values and logs without relying on an AI-written narrative.
+FR-36 · P0  The export service shall create a versioned ZIP containing the files below and a SHA-256 manifest. Export paths shall be sanitized; secrets and prohibited data shall be excluded. Exclusions shall be listed rather than hidden.
+Package path
+Purpose
+README.md
+Reproduction instructions, prerequisites, limitations, and expected workload
+claim.json and experiment.json
+Source references, settings, tolerance, assumptions, and exact versions
+src/ and tests/
+Implementation snapshot and redistributable correctness checks
+environment/
+Dependency lock, runner definition, image digest, hardware metadata
+data_manifest.json
+Dataset origin, license, digest, split, and acquisition instructions
+results/ and logs/
+Raw measurements, trusted telemetry, attempt logs, and code diffs
+report.html and report.json
+Human-readable and machine-readable evidence report
+manifest.json and THIRD_PARTY_NOTICES
+Artifact hashes, exclusions, upstream provenance, and notices
+
+FR-37 · P0  Export shall omit source PDFs and datasets unless redistribution is permitted. A local rerun shall verify available hashes and fail clearly when required external data or evaluator assets are unavailable.
+FR-38 · P0  Reruns shall retain lineage and compare only compatible specifications. Cached completed results shall be visibly labeled and never presented as new execution. Cached extraction may be reused only for the same document and parser version.
+FR-39 · P0  The UI shall render generated logs and reports as untrusted content, escape HTML, avoid executing embedded scripts, and provide keyboard-accessible controls and textual chart alternatives.
+
+9 System architecture
+The control plane owns identities, specifications, budgets, and verdicts. The execution plane runs untrusted implementations. Only a narrow runner interface crosses the trust boundary; generated code cannot access the model key, database, queue, or report store.
+
+Figure 1  Component responsibilities and experiment trust boundary. Arrows show requests or data flow; responses and event updates are omitted for readability.
+Component
+Implementation baseline
+UI and API
+Next.js and FastAPI; server-sent events for progress
+Orchestration
+Explicit typed state machine; Redis-backed job queue; Postgres is authoritative
+Document processing
+PyMuPDF for text PDF extraction; optional OCR adapter later
+Models
+Provider adapter around Meta Model API; model ID configurable and recorded
+Execution and storage
+Dedicated runner host; rootless containers in a disposable VM; local artifact volume for private MVP
+
+Exact dependency versions shall be pinned during implementation. A vector database is not required for the MVP; page-indexed text and deterministic source lookup are sufficient for a small paper set.
+
+10 Agent contracts and orchestration
+Role
+Input
+Validated output
+Extractor
+Page-indexed paper content
+Claim candidates with source locations
+Planner
+Claim, supported adapters, budget
+Experiment specification and missing fields
+Implementer
+Frozen specification, approved template
+Code snapshot and dependency request
+Reviewer
+Code, source passages, specification
+Fidelity concerns and test suggestions
+Repair agent
+Failure evidence and prior snapshot
+Bounded patch with explanation
+Explainer
+Immutable measurements and verdict
+Source-linked narrative without new metrics
+
+These are logical roles, not a requirement for six simultaneous agents or six models. A sequential implementation is preferred for the MVP. Only the orchestrator may authorize tools. Model outputs must validate against schemas; invalid output gets one constrained retry, counted against the global budget.
+State transitions
+Document state: uploaded → extracting → ready, needs_review, or rejected. Experiment state: draft → needs_information or ready. A ready experiment is immutable for a particular run; edits create a new version.
+Run state: queued → planning → generating → testing → executing → evaluating → completed. A test or execution failure may enter repairing and return to testing if repair and time budgets remain. Terminal alternatives are failed, canceled, or budget_exceeded. “Inconclusive” is an assessment, not a process state.
+OR-01 · P0  Every transition shall persist its event, timestamp, reason, and current attempt. The system shall reject invalid transitions and terminal-state rewrites. Transition events shall be monotonically sequenced per run.
+OR-02 · P0  A worker shall acquire a renewable lease. On a lost lease, another worker shall first reconcile the runner using the run ID before restarting. At-least-once queue delivery shall not duplicate an active experiment.
+OR-03 · P0  Transient provider errors may receive at most two exponential-backoff retries within the remaining budget. Policy blocks, invalid credentials, and unavailable models shall fail clearly; no silent provider or model fallback is allowed.
+OR-04 · P0  Prompt-injection text in papers, repositories, logs, or dataset metadata shall be treated as data. It shall never expand tool permissions, change budgets, modify evaluator rules, or authorize network access.
+Model provenance
+Record provider, exact model identifier, sampling settings, prompt-template version, input hashes, token usage, and request IDs when available. Raw model exchanges are private artifacts subject to redaction and retention. Model nondeterminism means identical seeds do not guarantee identical regenerated code; execution reruns should use the frozen code snapshot.
+
+11 Data model and storage
+Entity
+Key fields and relationships
+Project
+id, owner_id, title, created_at, deleted_at; owns papers and experiments
+Paper
+id, project_id, content_hash, original_uri, parser_version, extraction_status
+SourceSpan
+id, paper_id, page, bounding_box, text, extraction_warning
+ClaimVersion
+id, claim_id, version, source_span_ids, metric, target, conditions, origin
+ExperimentVersion
+id, claim_version_id, specification_json, spec_hash, evaluator_version, status
+Assumption
+id, experiment_version_id, field, value, origin, rationale, impact, resolution
+DatasetVersion
+id, source, license, digest, split_manifest, generator_version, storage_uri
+Run
+id, experiment_version_id, code_hash, state, budget, lease, idempotency_key, parent_run_id
+Attempt
+id, run_id, sequence, code_hash, patch_uri, reason, runner_id, exit_code
+Measurement
+id, attempt_id, metric, seed, repetition, value, unit, evaluator_version
+Assessment
+id, run_id, verdict, rule_version, gate_results, uncertainty, evidence_ids
+Artifact and Event
+artifact: path, digest, size, type, origin; event: run_id, sequence, type, timestamp
+
+DATA-01 · P0  Foreign keys shall enforce ownership and lineage. Unique constraints shall cover claim version, experiment version, per-run event sequence, and idempotency scope. Published run snapshots shall be append-only.
+DATA-02 · P0  Artifact keys shall be generated by the server. User-provided filenames shall not become filesystem paths. Hash validation shall detect missing or altered artifacts before export and rerun.
+DATA-03 · P0  Postgres shall own durable state and metadata; Redis shall carry disposable queue and progress data. Redis loss shall not erase specifications or completed results. Large logs, PDFs, datasets, and code snapshots belong in the artifact store.
+DATA-04 · P0  Every artifact shall distinguish trusted supervisor output, evaluator output, generated code output, and model narrative. Hashes establish byte identity, not scientific validity or independent attestation.
+Default retention is 30 days after the last project activity. User deletion revokes access immediately and removes active artifacts within 24 hours. Backups expire within 7 days; restoration must replay deletion tombstones before serving traffic. Retention settings and deletion status shall be visible.
+
+12 External and internal interfaces
+All application endpoints use /api/v1, authenticated sessions, owner checks, structured JSON, and UTC timestamps. Server-sent events support Last-Event-ID for reconnect. Long tasks return 202 with a job identifier; they do not block the request thread.
+Method and endpoint
+Contract
+POST /projects
+Create project; returns project_id
+POST /projects/{id}/papers
+Multipart upload; returns paper_id and extraction_job_id
+GET /papers/{id}/claims
+Claim versions, source links, feasibility status, missing fields
+POST /claims/{id}/experiments
+Create draft specification; returns experiment_id and version
+PATCH /experiments/{id}
+Update draft using If-Match; material changes create a new version
+POST /experiments/{id}/runs
+Start exact version; Idempotency-Key required; returns run_id
+GET /runs/{id}
+State, current stage, budget consumption, assessment if available
+GET /runs/{id}/events
+SSE events with sequence, timestamp, stage, message, artifact references
+POST /runs/{id}/cancel
+Idempotent cancellation request; returns cancellation status
+GET /runs/{id}/report
+Versioned report JSON with evidence and verdict reasons
+POST /runs/{id}/exports
+Create export job; download URL available when complete
+DELETE /projects/{id}
+Revoke access, cancel jobs, schedule artifact deletion
+
+Error and concurrency behavior
+Errors shall contain code, message, details, request_id, and retryable. Use 400 for malformed input, 401/403 for access failures, 404 for unavailable resources, 409 for version or state conflicts, 413 for oversized uploads, 422 for unsupported or incomplete specifications, and 429 for quotas. No stack trace or secret appears in client errors.
+Runner interface
+The internal runner accepts run_id, attempt_id, image digest, input artifact digests, approved entrypoint, resource limits, and an output schema. It returns a runner job ID and trusted telemetry. It shall not accept arbitrary host mount paths, Docker flags, privileged mode, or a shell command from the public API.
+Model interface
+The provider adapter exposes structured generation and permitted tool calls. It normalizes provider failures and usage. Secrets stay in the control plane; model responses are parsed and validated before any filesystem or runner operation. Model selection is configuration, not a hard-coded assumption about future availability.
+
+13 Security privacy and trust boundaries
+SEC-01 · P0  The private MVP shall use authenticated access and owner checks on every project, report, artifact, export, and event stream. Public multi-user deployment requires an additional isolation review before launch.
+SEC-02 · P0  Generated code shall run in rootless containers on a dedicated disposable VM, with read-only root filesystem, no-new-privileges, dropped Linux capabilities, resource limits, and default-deny network access. Containers alone shall not be described as a complete hostile-code security boundary.
+SEC-03 · P0  No Docker socket, cloud credentials, model key, host home directory, database credential, or unrestricted host volume shall be mounted into an experiment. The evaluator and control plane shall execute outside the writable sandbox.
+SEC-04 · P0  A restricted data broker shall permit only approved HTTPS sources and validate redirects and resolved addresses. It shall block loopback, link-local, private and cloud metadata endpoints. The MVP can avoid URL fetching entirely by preloading datasets.
+SEC-05 · P0  The trusted evaluator shall validate outputs as bounded JSON or numeric arrays. It shall not deserialize pickle or execute generated report scripts. Hidden correctness inputs may detect hard-coded answers, but do not establish general algorithm correctness.
+SEC-06 · P0  API keys shall be injected through server-side secret configuration and redacted from logs. TLS shall protect deployed traffic. Storage shall use host or provider encryption at rest and least-privilege service identities.
+SEC-07 · P0  Before upload, the UI shall disclose that relevant paper content may be sent to the configured model provider. Private papers shall not be used for training by Paper2Proof. Provider retention behavior must be checked separately and shall not be promised without verification.
+SEC-08 · P0  Generated code, imported dependencies, and dataset archives shall undergo policy and integrity checks. Static scanning is advisory; runtime isolation remains mandatory even when scans pass.
+SEC-09 · P0  Export and download handlers shall enforce ownership, safe filenames, MIME types, and attachment disposition. HTML reports shall use a restrictive content-security policy and escaped content.
+Residual limitations
+A protected evaluator reduces accidental or deliberate metric manipulation, but cannot guarantee that an implementation faithfully follows a paper. Domain correctness tests, source review, and explicit uncertainty remain necessary. The MVP is a research engineering assistant, not an independent scientific authority.
+
+14 Quality and operational requirements
+These are release targets, not measured performance claims. Validation uses the declared 4-core, 16 GB reference host, one active sandbox, and the selected supported papers. External API latency is reported separately.
+ID
+Requirement and measurement
+NFR-01
+API metadata reads: p95 below 500 ms over 100 requests, excluding file transfer and model calls
+NFR-02
+Progress: stage events visible within 2 seconds of persistence in at least 95 percent of events
+NFR-03
+Cancellation: stop the runner process tree within 10 seconds of accepting cancellation
+NFR-04
+Supported short demo: at least one complete claim runs end to end within 10 minutes on the reference profile
+NFR-05
+Capacity: one active execution and up to five queued runs; further requests receive explicit quota feedback
+NFR-06
+Cost: enforce configured model-call and estimated spend limits before the next call; record actual usage when available
+NFR-07
+Recovery: worker restart reconciles active runner jobs within 60 seconds; completed evidence remains intact
+NFR-08
+Reproducibility: deterministic fixtures rerun identically; stochastic outputs are compared under the declared uncertainty policy
+NFR-09
+Usability: keyboard navigation, readable statuses, no color-only verdicts, and a text equivalent for every chart
+NFR-10
+Auditability: every verdict resolves to a specification version, evaluator version, code digest, and measurement set
+NFR-11
+Portability: fresh Linux setup using pinned containers and documented configuration completes without manual code edits
+NFR-12
+Retention: active deletion completes within 24 hours; backup expiry and deletion replay follow DATA policy
+
+Observability
+Every service shall emit structured events with project, run, attempt, request, stage, and error identifiers. Track queue time, stage duration, model tokens, retries, estimated cost, runner exits, resource limit events, and verdict distribution. Logs shall exclude credentials and use bounded payload sizes.
+Recovery and maintenance
+Back up Postgres and artifact manifests daily for the private demo, with a 24-hour recovery point target. Restore verification shall check hashes and deletion tombstones. Dependency and evaluator updates shall receive new versions; completed runs shall preserve their original environment references.
+
+15 Acceptance tests and traceability
+All P0 acceptance tests must pass before the demonstration is called complete. Test fixtures include a reviewed small paper, a controlled synthetic method, missing-information cases, and deliberately faulty implementations. Fixture results are labeled as tests, never as scientific discoveries.
+Test
+Acceptance condition
+Requirements
+AT-01
+Valid PDF extracts source spans; encrypted, corrupt, and oversized PDFs fail clearly
+FR-01–03
+AT-02
+Every selected claim resolves to a real page and passage; invented citations are rejected
+FR-04–08
+AT-03
+Missing dataset or critical parameter blocks a direct reproduction; adapted run is labeled
+FR-09–16
+AT-04
+Editing a tolerance after a run produces a new version and preserves the previous result
+FR-12–14
+AT-05
+Known import bug is repaired within budget; history retains patch and failure evidence
+FR-17–20
+AT-06
+Infinite loop, memory flood, and oversized output terminate with distinct reason codes
+FR-21–23
+AT-07
+Cancel stops child processes; duplicate Start requests produce one runner job
+FR-23–24
+AT-08
+Wrong algorithm fails reference checks even if it prints the expected target value
+FR-25–26
+AT-09
+Known metric fixtures produce exact numeric results and correct unit interpretation
+FR-27–29
+AT-10
+Inside, outside, and overlapping acceptance-band fixtures produce the specified verdicts
+FR-30–32
+AT-11
+Report values match stored measurements; ZIP hashes validate and rerun reproduces a fixture
+FR-33–38
+AT-12
+Injected HTML or prompt instructions cannot change evaluator policy or execute in UI
+FR-39; OR-04
+AT-13
+Worker restart reconciles active execution without launching a duplicate
+OR-01–03
+AT-14
+Other owner IDs cannot access artifacts; deletion revokes access and schedules removal
+DATA; SEC-01
+AT-15
+Sandbox cannot reach network, secrets, host paths, or evaluator files
+SEC-02–05
+AT-16
+Reference-host latency, cancellation, budget, and recovery checks meet stated targets
+NFR-01–12
+AT-17
+Distribution includes upstream license, applicable notices, change markers, and inventory
+LIC-01–03
+
+Requirements are grouped in the traceability column where a test exercises several related controls. Each implementation ticket shall link its requirement IDs and the exact test evidence produced at release.
+
+16 Delivery plan and demonstration
+Implementation order
+Stage
+Deliverable and exit condition
+Day 1
+Choose demo papers, audit reuse, confirm Meta access, freeze supported metric and data adapters
+Day 2
+Build PDF ingestion and source-linked claim extraction; validate manually on chosen papers
+Day 3
+Implement typed specifications, assumption review, versioning, and feasibility gates
+Days 4 and 5
+Build generation adapter, isolated runner, trusted evaluator, and bounded repair loop
+Day 6
+Complete one real claim from upload to evidence; stop expanding scope until it works
+Day 7
+Add report, raw artifact viewer, export, and rerun lineage
+Day 8
+Exercise missing-information, mismatch, failure, and sandbox acceptance cases
+Day 9
+Run full release checks, record demo, document known limitations and original contributions
+Day 10
+Fix release blockers and submit according to confirmed event rules and deadline
+
+This is a ten-day work allocation, not a claim about remaining calendar time. Compress scope rather than removing evaluation or isolation controls. Optional repository import, OCR, GPU support, and scheduled CI are the first items to defer.
+Three minute demonstration
+0:00–0:30: Upload the selected paper and show its source-linked claim. 0:30–1:00: Inspect conditions, baseline, budget, and assumptions. 1:00–2:00: Show generated code, real execution events, and evaluator checks. 2:00–2:40: Open measurements, verdict rationale, and downloadable evidence. 2:40–3:00: Show an incomplete claim correctly labeled inconclusive.
+If execution takes longer than the presentation, use an accurately labeled recording or a completed run with timestamps and a separate live short fixture. Never imply a precomputed result was generated live.
+Release package
+The submission should include the working private demo, source repository, setup instructions, short demo video, two or three supported-paper examples, acceptance-test evidence, third-party attribution, and a clear explanation of newly implemented features. Exact submission requirements must be confirmed from the event organizers.
+Proposed repository organization
+Use apps/web for the UI; services/api and services/worker for control and orchestration; packages/contracts for schemas; packages/evaluation for trusted adapters; runners/ for isolated execution definitions; third_party/ for retained upstream components; tests/fixtures for reviewed examples; and docs/ for architecture, limitations, and source attribution.
+
+17 Risks decisions and references
+Risk
+Response
+Paper lacks experimental detail
+Surface the gap; require information or label the experiment adapted
+Generated code runs but implements the wrong method
+Reference tests, method-to-source review, and a fidelity gate before a verdict
+Agent tunes until the claim appears true
+Freeze specification; retain attempts; separate exploratory tuning
+Dataset or package unavailable
+Use prevalidated inputs and pinned images; fail with a clear blocker
+API limits or excessive latency
+Bound retries and spend; keep one small supported demo; preserve partial evidence
+Overlap with existing work
+Credit PaperCoder and demonstrate claim provenance and protected evaluation
+Untrusted code escapes a weak sandbox
+Dedicated disposable VM, rootless runner, no secrets, restricted interfaces
+
+Decisions required during implementation
+Select the first two or three papers and their redistribution rules; pin the Paper2Code commit and imported components; select the available Meta model; validate the host profile; approve metric adapters and tolerances; choose the artifact backend and authentication method; and confirm the final hackathon rules. These are build-time decisions, not blockers to using this SRS.
+Source references
+Sources accessed 26 October 2026. External facts are limited to upstream capabilities, licensing, and platform integration. All Paper2Proof requirements and budgets in this document are proposed design decisions.
+[S1] Paper2Code official repository and README. https://github.com/going-doer/Paper2Code
+[S2] Seo and colleagues. Paper2Code: Automating Code Generation from Scientific Papers in Machine Learning. See method and reproduction analysis. https://arxiv.org/html/2504.17192v4
+[S3] Apache License 2.0, including redistribution conditions in section 4. Upstream repository identifies Apache 2.0 licensing; retain the license from the exact revision imported. https://www.apache.org/licenses/LICENSE-2.0
+[S4] Meta Muse Code documentation. Distinguishes the coding agent from direct Model API integration. https://dev.meta.ai/docs/muse-code
+[S5] Meta Global AI Developer Hackathon overview. Event fit and current official instructions should be checked before submission. https://dev.meta.ai/events/global-hackathon
+Definition of done
+Paper2Proof is ready for the MVP demonstration when one supported real-paper claim completes end to end with traceable measurements, an incomplete case returns an honest inconclusive assessment, exported evidence can be rerun, every P0 acceptance check passes, and attribution and known limitations are documented.
