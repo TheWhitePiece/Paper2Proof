@@ -11,7 +11,7 @@ from services.api.main import create_app
 
 
 @pytest.fixture(autouse=True)
-def isolated_environment(monkeypatch):
+def isolated_environment(monkeypatch, tmp_path):
     import os
 
     for key in os.environ:
@@ -21,6 +21,7 @@ def isolated_environment(monkeypatch):
             "MODAL_TOKEN_SECRET",
         }:
             monkeypatch.delenv(key)
+    monkeypatch.setenv("P2P_DATA_DIR", str(tmp_path / "workspace"))
 
 
 def test_offline_startup_without_credentials():
@@ -95,6 +96,8 @@ def test_offline_provider_validates_schema_and_labels_usage():
 
 def test_unknown_route_returns_structured_error():
     with TestClient(create_app(Settings(_env_file=None))) as client:
+        access_code = client.app.state.workspace.root.joinpath("access-code.txt").read_text()
+        assert client.post("/api/v1/session", json={"access_code": access_code}).status_code == 200
         response = client.get("/api/v1/missing")
         assert response.status_code == 404
         assert response.json()["request_id"] == response.headers["x-request-id"]

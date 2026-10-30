@@ -30,12 +30,14 @@ class HealthResponse(BaseModel):
 
 
 class DevelopmentStatus(BaseModel):
-    stage: Literal["foundation"] = "foundation"
+    stage: Literal["offline_workspace"] = "offline_workspace"
     provider: str
     runner: str
     live_inference_available: Literal[False] = False
     sandbox_execution_available: Literal[False] = False
-    persistence_available: Literal[False] = False
+    persistence_available: Literal[True] = True
+    storage_backend: Literal["sqlite_local_development"] = "sqlite_local_development"
+    reviewed_fixture_cli_available: Literal[True] = True
     message: str
 
 

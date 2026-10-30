@@ -1,6 +1,7 @@
 """Server-only configuration. Loading settings never contacts a provider."""
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
 from pydantic import Field, SecretStr, model_validator
@@ -27,6 +28,7 @@ class Settings(BaseSettings):
     )
     database_url: SecretStr = SecretStr("")
     redis_url: SecretStr = SecretStr("")
+    data_dir: Path = Path("data")
     max_model_calls: int = Field(default=20, ge=1, le=20)
     max_repairs: int = Field(default=3, ge=0, le=3)
     invocation_timeout_seconds: int = Field(default=180, ge=1, le=180)

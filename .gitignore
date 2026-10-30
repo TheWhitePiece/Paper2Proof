@@ -13,8 +13,10 @@ node_modules/
 .next/
 out/
 *.tsbuildinfo
+playwright-report/
+test-results/
 data/
-artifacts/
+/artifacts/
 datasets/
 uploads/
 *.pdf

@@ -1,35 +1,53 @@
 # Paper2Proof
 
-Claim-level experimental verification of research papers. This repository is at
-the **local development foundation** milestone; no paper has been reproduced.
+Claim-level experimental verification of research papers. The **single-owner offline
+workspace** now supports source review, approved specifications, durable jobs, staged
+code previews, and measured engineering fixtures. Live Meta inference, Modal execution
+and a real-paper reproduction remain pending. No API keys or credits are required for
+the local workflow.
 
-The existing repository and MIT license are preserved. Account setup, build-plan
-section 2 credit tasks, live APIs, and Modal execution are deferred at the owner's
-request. No API keys or credits are needed to run this foundation.
+## Run locally
 
-## What works now
-
-- FastAPI health/status endpoints and OpenAPI documentation.
-- Validated server-side environment settings, structured errors, request IDs.
-- Typed provider interface and explicit, schema-validated offline fixtures.
-- Next.js/TypeScript workspace showing actual API connectivity and pending features.
-- Python and frontend dependency locks, setup/check scripts, local tests.
-
-Upload, claim extraction, experiments, persistence, authentication, and reports are
-not implemented yet. The frontend does not fabricate claims or numeric results.
-
-## Local setup (Windows PowerShell)
-
-Requires Python 3.11+ and Node.js 20.9+ with npm. Package installation needs internet;
-application startup needs no provider access. Run commands from the repository root.
+Requires Python 3.11+ and Node.js 20.9+ with npm. Install locked dependencies once:
 
 ```powershell
 .\scripts\setup.ps1
 ```
 
-This creates `.venv`, installs locked dependencies, and copies `.env.example` to
-`.env` only when it does not already exist. It never overwrites your keys. If your
-PowerShell policy blocks scripts, run the individual commands below instead:
+The setup preserves an existing `.env`. Defaults are `P2P_PROVIDER=offline`,
+`P2P_RUNNER=disabled`, and `P2P_DATA_DIR=data`. Package installation needs internet;
+using the offline workflow does not call a model or cloud compute service.
+
+Start three terminals from the repository root:
+
+```powershell
+# API
+.\.venv\Scripts\python.exe -m uvicorn services.api.main:create_app --factory --host 127.0.0.1 --port 8000
+```
+
+```powershell
+# Separate worker: required for PDF extraction and experiment jobs
+.\.venv\Scripts\python.exe -m services.worker.main
+```
+
+```powershell
+# Dashboard
+npm.cmd --prefix apps/web run dev
+```
+
+Open <http://127.0.0.1:3000>. Read the local access code from **`data/access-code.txt`**
+locally and use it to sign in. Do not share or commit that file. This is local
+single-owner authentication; the application is not ready for public hosting.
+API documentation is at <http://127.0.0.1:8000/docs>.
+
+Choose **Use demonstration PDF** to try the full offline flow. Select a passage,
+save a claim, review the JSON specification, explicitly set a target and rationale,
+then approve the saved version. Stage an offline code preview or run the reviewed
+engineering fixture, inspect events/results, and download the evidence ZIP.
+
+On Linux/macOS use `python3 -m venv .venv`, `.venv/bin/python` instead of the Windows
+Python path, and `npm` instead of `npm.cmd`. Linux acceptance remains unverified.
+If PowerShell blocks scripts, install manually:
 
 ```powershell
 python -m venv .venv
@@ -38,64 +56,80 @@ python -m venv .venv
 npm.cmd --prefix apps/web ci
 ```
 
-Defaults work without `.env`; copy the example manually if needed. Start two terminals:
+## What works offline
+
+- PDF byte/page validation, immutable hashes, page/span/bounding-box provenance,
+  bounded parser processes, and clear rejection of unsupported inputs.
+- Manual source-linked claims, settings with origins/rationales, missing-information
+  gates, immutable specification versions, and exact-hash approval.
+- SQLite development persistence, a separate worker, renewable leases, idempotent
+  start requests, queue caps, persisted events/SSE, and cancellation.
+- Provider-neutral extraction/planning/generation contracts and bounded code repairs.
+  The UI preview uses a labeled fixture template and never executes generated code.
+- A deterministic 128x32 numerical fixture, independently calculated measurements,
+  full iterate checks, negative cases, and repeatable evidence.
+- Authenticated local access, artifact integrity checks, bounded ZIP export excluding
+  PDFs/credentials, and deletion with immediate access revocation plus worker cleanup.
+
+This does not claim full SRS acceptance. SQLite/local leases are a development
+profile; PostgreSQL/Redis, deployment security, backups/retention, actual Meta calls,
+isolated generated-code execution and real-paper comparability still need validation.
+Detailed limits and commands: [offline workflow](docs/offline-workflow.md).
+
+## How paper-to-code generation works
+
+PDF source spans → cited claim → proposed experiment → human review and frozen
+specification → Meta-generated `src/solver.py` → isolated execution → trusted
+measurements and evidence. Repairs can fix implementation defects, but cannot change
+the accepted target, data, seeds or evaluator. See the
+[generation design](docs/offline-workflow.md#how-live-code-generation-will-work).
+
+The current code preview is **not Meta inference**. The current numerical run uses
+the fixed reviewed solver, **not staged/generated code**, and is **not a paper reproduction**.
+
+## Standalone engineering fixture
 
 ```powershell
-# Terminal 1, repository root
-.\.venv\Scripts\python.exe -m uvicorn services.api.main:create_app --factory --reload --host 127.0.0.1 --port 8000
+.\.venv\Scripts\python.exe -m paper2proof.cli fixture
+.\.venv\Scripts\python.exe -m paper2proof.cli fixture --case wrong_update
+.\.venv\Scripts\python.exe -m paper2proof.cli fixture --case missing_setting
 ```
 
-```powershell
-# Terminal 2, repository root
-npm.cmd --prefix apps/web run dev
-```
+The CLI prints an evidence directory under ignored `artifacts/`. Use that path with
+`python -m paper2proof.cli verify <directory>` or `rerun <directory>`.
+[Fixture contract and limits](docs/offline-experiments.md).
 
-Open <http://127.0.0.1:3000>. Backend docs are at <http://127.0.0.1:8000/docs>.
-The frontend proxies `/api/v1/*` to the local backend. Both development servers
-bind to loopback; this is not an authenticated deployment.
-
-On Linux/macOS use `python3 -m venv .venv`, `.venv/bin/python` instead of the Windows
-Python path, and `npm` instead of `npm.cmd`. Linux acceptance remains unverified.
-
-## Check the foundation
+## Validation
 
 ```powershell
 .\scripts\check.ps1
 ```
 
-These checks use no live model, no sandbox, and no uploaded paper. Recorded results
-are in [development validation](docs/development-validation.md).
+The browser test is `npm.cmd --prefix apps/web run test:e2e`; it requires Chrome
+and the three services using `data/e2e` as the API/worker data directory.
+[Validation record](docs/development-validation.md).
 
 ## Credentials later
 
-Put future credentials in the root `.env`, which Git ignores. Keep
-`P2P_PROVIDER=offline` and `P2P_RUNNER=disabled` for now. There are placeholders for
-`MODEL_API_KEY`, model/base URL, Modal tokens, and future database/Redis URLs.
-Adding credentials does **not** activate an unfinished integration. Live adapters
-and opt-in smoke scripts are explicitly pending and must be implemented and checked
-against current provider documentation before use. No keys belong in browser variables.
+Put future keys in the ignored root `.env`. Keep offline/disabled modes until the
+live adapters and sandbox policy are implemented and tested. Adding credentials
+alone neither activates a service nor completes the integration. Never put keys in
+browser variables, source files, logs or evidence exports.
 
 ## Project map
 
 | Path | Responsibility |
 |---|---|
-| `apps/web` | Next.js development workspace |
-| `services/api` | FastAPI control plane |
-| `services/worker` | Reserved durable worker boundary |
-| `paper2proof/config.py` | Environment validation |
-| `paper2proof/schemas` | API/provider contracts and distinct state/outcome enums |
-| `paper2proof/providers` | Offline provider and future live-provider boundary |
-| `tests` | Foundation validation |
-| `docs` | Plan, extracted SRS, acceptance and pending work |
+| `apps/web` | Source review, approval, job progress and evidence UI |
+| `services/api`, `services/worker` | Local authenticated API and durable worker |
+| `paper2proof/pdf`, `review.py`, `schemas` | Provenance and reviewed experiment contracts |
+| `paper2proof/agents`, `providers` | Bounded model-facing contracts and offline previews |
+| `paper2proof/runner`, `evaluation`, `artifacts` | Reviewed fixture execution and trusted evidence |
+| `paper2proof/store.py`, `workspace.py`, `auth.py` | Local persistence, lifecycle and sessions |
+| `tests`, `apps/web/tests/e2e` | Backend and browser verification |
+| `data/`, `artifacts/` | Private local state; Git ignores both |
 
-Next coding milestone: the deterministic engineering fixture and trusted evaluator;
-live sandbox integration stays deferred. Do not execute generated code locally as
-a replacement for a verified isolation boundary.
-
-See [pending work](docs/pending-steps.md), [acceptance](docs/acceptance.md),
-[build plan](docs/Paper2Proof_Codex_Build_Plan.md), and the
-[SRS text](docs/Paper2Proof_SRS_v1.txt). The original DOCX remains authoritative
-for layout; text extraction preserves paragraphs, table-cell order, and requirement IDs.
-
-Attribution: [third-party inventory](THIRD_PARTY_NOTICES.md) and
-[contribution record](HACKATHON_CONTRIBUTIONS.md).
+See [pending steps](docs/pending-steps.md), [SRS acceptance](docs/acceptance.md),
+[hackathon alignment](docs/hackathon-alignment.md), [build plan](docs/Paper2Proof_Codex_Build_Plan.md),
+[SRS text](docs/Paper2Proof_SRS_v1.txt), [third-party inventory](THIRD_PARTY_NOTICES.md),
+and [contribution record](HACKATHON_CONTRIBUTIONS.md).

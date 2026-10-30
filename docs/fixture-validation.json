@@ -1,0 +1,225 @@
+{
+  "recorded_at_utc": "2026-10-29T18:25:06.450151+00:00",
+  "label": "Actual local engineering-fixture runs; not paper reproduction or sandbox execution",
+  "evidence_note": "Full attempt directories are local and gitignored; regenerate with the documented CLI.",
+  "cases": [
+    {
+      "directory": "artifacts/618673b57eb84611904c22b4cc1ac2e1",
+      "report": {
+        "aggregation": "all_trials",
+        "assessment": "fixture_target_met",
+        "attempt_id": "618673b57eb84611904c22b4cc1ac2e1",
+        "code_sha256": "d3ff6152ef9ff42d8ed672d030a060a84fc5fcfc7b3b80c848a13323ae058752",
+        "evaluator_sha256": "0a0f35a5f25ccf2ceaa42826f3e7edaf7b5af41f438aea499aae5c53e22b29cf",
+        "evaluator_version": "linear-evaluator-v1",
+        "execution_state": "completed",
+        "exit_reason": "completed",
+        "experiment_mode": "engineering_fixture",
+        "fidelity_failures": [],
+        "fixture_variant": "reference",
+        "injected_fault": false,
+        "input_sha256": "899ca8af72dc59b846c588cd77edad648e6a201970cf0e138165b5187b77792a",
+        "limitations": [
+          "Engineering fixture, not a sourced paper experiment or scientific verdict.",
+          "Local reviewed code only: no network, filesystem, memory, or process isolation.",
+          "Fidelity checks validate the supplied trace, not proof of arbitrary code semantics.",
+          "Descriptive fixed-seed metrics, not statistical evidence for a population claim.",
+          "Hashes detect byte changes against this manifest; they are not signed attestations."
+        ],
+        "measurements": [
+          {
+            "iterations": 512,
+            "relative_residual": 0.0023031817753073574,
+            "relative_solution_error": 0.0033244291601181165,
+            "seed": 7,
+            "unit": "dimensionless_ratio"
+          },
+          {
+            "iterations": 512,
+            "relative_residual": 0.0030344910170331907,
+            "relative_solution_error": 0.0037481257016770955,
+            "seed": 23,
+            "unit": "dimensionless_ratio"
+          },
+          {
+            "iterations": 512,
+            "relative_residual": 0.001978285284991795,
+            "relative_solution_error": 0.002454996449419601,
+            "seed": 41,
+            "unit": "dimensionless_ratio"
+          }
+        ],
+        "method_fidelity_passed": true,
+        "output_sha256": "3b1ea190a22ff4a2b1a4b56c82efdd767f29c7be57efbceecc9c0285cb8ce974",
+        "parent_attempt_id": null,
+        "reason": "all_declared_trials_met_target",
+        "schema_version": "fixture-report-v1",
+        "scientific_verdict": null,
+        "spec_sha256": "90abf63a8cec68106a24663aa1b43cd24553ff659a50883227a68997f7fba16b",
+        "target_relative_error": 0.01,
+        "uncertainty": "descriptive_only; no population-level or paper-reproduction inference"
+      }
+    },
+    {
+      "directory": "artifacts/68f945793abc465588721367f9cefbbe",
+      "report": {
+        "aggregation": "all_trials",
+        "assessment": "inconclusive",
+        "attempt_id": "68f945793abc465588721367f9cefbbe",
+        "code_sha256": "d3ff6152ef9ff42d8ed672d030a060a84fc5fcfc7b3b80c848a13323ae058752",
+        "evaluator_sha256": "0a0f35a5f25ccf2ceaa42826f3e7edaf7b5af41f438aea499aae5c53e22b29cf",
+        "evaluator_version": "linear-evaluator-v1",
+        "execution_state": "completed",
+        "exit_reason": "completed",
+        "experiment_mode": "engineering_fixture",
+        "fidelity_failures": [
+          {
+            "iteration": 1,
+            "seed": 7
+          },
+          {
+            "iteration": 1,
+            "seed": 23
+          },
+          {
+            "iteration": 1,
+            "seed": 41
+          }
+        ],
+        "fixture_variant": "wrong_update",
+        "injected_fault": true,
+        "input_sha256": "899ca8af72dc59b846c588cd77edad648e6a201970cf0e138165b5187b77792a",
+        "limitations": [
+          "Engineering fixture, not a sourced paper experiment or scientific verdict.",
+          "Local reviewed code only: no network, filesystem, memory, or process isolation.",
+          "Fidelity checks validate the supplied trace, not proof of arbitrary code semantics.",
+          "Descriptive fixed-seed metrics, not statistical evidence for a population claim.",
+          "Hashes detect byte changes against this manifest; they are not signed attestations."
+        ],
+        "measurements": [
+          {
+            "iterations": 512,
+            "relative_residual": 0.016202340763972974,
+            "relative_solution_error": 0.022912886851022284,
+            "seed": 7,
+            "unit": "dimensionless_ratio"
+          },
+          {
+            "iterations": 512,
+            "relative_residual": 0.02668147300684564,
+            "relative_solution_error": 0.034157825146970903,
+            "seed": 23,
+            "unit": "dimensionless_ratio"
+          },
+          {
+            "iterations": 512,
+            "relative_residual": 0.026177209933133237,
+            "relative_solution_error": 0.03645921675703632,
+            "seed": 41,
+            "unit": "dimensionless_ratio"
+          }
+        ],
+        "method_fidelity_passed": false,
+        "output_sha256": "ab01addf8812fa3689f3f999291075590c4e0f3607c0d25d0445e066af834ced",
+        "parent_attempt_id": null,
+        "reason": "method_fidelity_failed",
+        "schema_version": "fixture-report-v1",
+        "scientific_verdict": null,
+        "spec_sha256": "90abf63a8cec68106a24663aa1b43cd24553ff659a50883227a68997f7fba16b",
+        "target_relative_error": 0.01,
+        "uncertainty": "descriptive_only; no population-level or paper-reproduction inference"
+      }
+    },
+    {
+      "directory": "artifacts/f72a6cd27cd84c57b4b6ae414256e727",
+      "report": {
+        "aggregation": "all_trials",
+        "assessment": "inconclusive",
+        "attempt_id": "f72a6cd27cd84c57b4b6ae414256e727",
+        "code_sha256": "d3ff6152ef9ff42d8ed672d030a060a84fc5fcfc7b3b80c848a13323ae058752",
+        "evaluator_sha256": "0a0f35a5f25ccf2ceaa42826f3e7edaf7b5af41f438aea499aae5c53e22b29cf",
+        "evaluator_version": "linear-evaluator-v1",
+        "execution_state": "not_started",
+        "exit_reason": "missing_configuration",
+        "experiment_mode": "engineering_fixture",
+        "fixture_variant": "missing_setting",
+        "injected_fault": true,
+        "input_sha256": "899ca8af72dc59b846c588cd77edad648e6a201970cf0e138165b5187b77792a",
+        "limitations": [
+          "Engineering fixture, not a sourced paper experiment or scientific verdict.",
+          "Local reviewed code only: no network, filesystem, memory, or process isolation.",
+          "Fidelity checks validate the supplied trace, not proof of arbitrary code semantics.",
+          "Descriptive fixed-seed metrics, not statistical evidence for a population claim.",
+          "Hashes detect byte changes against this manifest; they are not signed attestations."
+        ],
+        "measurements": [],
+        "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "parent_attempt_id": null,
+        "reason": "missing_target",
+        "schema_version": "fixture-report-v1",
+        "scientific_verdict": null,
+        "spec_sha256": "809f7fdf738e18a2963d2b51382a7233e11b20b6bb390e6499691ed25acc6dbf",
+        "target_relative_error": null
+      }
+    }
+  ],
+  "rerun": {
+    "directory": "artifacts/validation-reruns/6515620faab24c679538b383b8923642",
+    "report": {
+      "aggregation": "all_trials",
+      "assessment": "fixture_target_met",
+      "attempt_id": "6515620faab24c679538b383b8923642",
+      "code_sha256": "d3ff6152ef9ff42d8ed672d030a060a84fc5fcfc7b3b80c848a13323ae058752",
+      "evaluator_sha256": "0a0f35a5f25ccf2ceaa42826f3e7edaf7b5af41f438aea499aae5c53e22b29cf",
+      "evaluator_version": "linear-evaluator-v1",
+      "execution_state": "completed",
+      "exit_reason": "completed",
+      "experiment_mode": "engineering_fixture",
+      "fidelity_failures": [],
+      "fixture_variant": "reference",
+      "injected_fault": false,
+      "input_sha256": "899ca8af72dc59b846c588cd77edad648e6a201970cf0e138165b5187b77792a",
+      "limitations": [
+        "Engineering fixture, not a sourced paper experiment or scientific verdict.",
+        "Local reviewed code only: no network, filesystem, memory, or process isolation.",
+        "Fidelity checks validate the supplied trace, not proof of arbitrary code semantics.",
+        "Descriptive fixed-seed metrics, not statistical evidence for a population claim.",
+        "Hashes detect byte changes against this manifest; they are not signed attestations."
+      ],
+      "measurements": [
+        {
+          "iterations": 512,
+          "relative_residual": 0.0023031817753073574,
+          "relative_solution_error": 0.0033244291601181165,
+          "seed": 7,
+          "unit": "dimensionless_ratio"
+        },
+        {
+          "iterations": 512,
+          "relative_residual": 0.0030344910170331907,
+          "relative_solution_error": 0.0037481257016770955,
+          "seed": 23,
+          "unit": "dimensionless_ratio"
+        },
+        {
+          "iterations": 512,
+          "relative_residual": 0.001978285284991795,
+          "relative_solution_error": 0.002454996449419601,
+          "seed": 41,
+          "unit": "dimensionless_ratio"
+        }
+      ],
+      "method_fidelity_passed": true,
+      "output_sha256": "3b1ea190a22ff4a2b1a4b56c82efdd767f29c7be57efbceecc9c0285cb8ce974",
+      "parent_attempt_id": "618673b57eb84611904c22b4cc1ac2e1",
+      "reason": "all_declared_trials_met_target",
+      "schema_version": "fixture-report-v1",
+      "scientific_verdict": null,
+      "spec_sha256": "90abf63a8cec68106a24663aa1b43cd24553ff659a50883227a68997f7fba16b",
+      "target_relative_error": 0.01,
+      "uncertainty": "descriptive_only; no population-level or paper-reproduction inference"
+    },
+    "identical_numeric_output": true,
+    "identical_inputs": true
+  }
+}

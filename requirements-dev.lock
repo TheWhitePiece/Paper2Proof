@@ -1,6 +1,6 @@
-# Resolved in the project venv on Windows / Python 3.11.7, 2026-10-29.
+# Resolved on Windows / Python 3.11.7, 2026-10-30.
 # Application, test and build dependencies; version pins, not artifact hashes.
-# Reinstall this file, then pip install --no-deps --no-build-isolation -e .
+# Install this file, then pip install --no-deps --no-build-isolation -e .
 annotated-doc==0.0.5
 annotated-types==0.8.0
 anyio==4.15.1
@@ -20,6 +20,7 @@ pydantic==2.14.1
 pydantic-core==2.50.1
 pydantic-settings==2.16.2
 pygments==2.21.0
+pymupdf==1.28.2
 pytest==9.2.0
 python-dotenv==1.2.4
 ruff==0.17.3
